@@ -1,0 +1,8 @@
+image:
+  repository: 192.168.64.16:5000/helloworld
+  tag: "initial"   # Image Updater bunu güncelleyecek
+  pullPolicy: IfNotPresent
+replicaCount: 1
+service:
+  type: ClusterIP
+  port: 80

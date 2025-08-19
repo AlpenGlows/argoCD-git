@@ -1,0 +1,14 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: helloworld
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector: { matchLabels: { app: helloworld } }
+  template:
+    metadata: { labels: { app: helloworld } }
+    spec:
+      containers:
+        - name: app
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          ports: [ { containerPort: 80 } ]
