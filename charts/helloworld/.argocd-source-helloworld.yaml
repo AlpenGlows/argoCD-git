@@ -1,0 +1,8 @@
+helm:
+  parameters:
+  - name: image.name
+    value: 192.168.64.16:5000/helloworld
+    forcestring: true
+  - name: image.tag
+    value: latest
+    forcestring: true
