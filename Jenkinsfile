@@ -13,14 +13,18 @@ pipeline {
     }
 
     // (OPSİYONEL) Registry login gerekiyorsa bu aşamayı bırak
-    stage('Docker Login') {
-      when { expression { return env.REG_CRED?.trim() } }
-      steps {
-        withCredentials([usernamePassword(credentialsId: env.REG_CRED, usernameVariable: 'U', passwordVariable: 'P')]) {
-          sh 'echo $P | docker login ' + env.REGISTRY + ' -u $U --password-stdin'
-        }
-      }
+   stage('Docker Login') {
+  when { expression { return env.REG_CRED?.trim() } }
+  steps {
+    withCredentials([usernamePassword(credentialsId: env.REG_CRED, usernameVariable: 'U', passwordVariable: 'P')]) {
+      sh '''
+        set -e
+        echo "$P" | docker login "$REGISTRY" -u "$U" --password-stdin
+      '''
     }
+  }
+}
+
 
     stage('Build') {
       steps {
