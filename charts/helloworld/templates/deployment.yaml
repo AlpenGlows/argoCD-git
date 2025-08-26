@@ -2,14 +2,22 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: helloworld
-  namespace: cd-sys
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: helloworld
 spec:
-  replicas: 1
-  selector: { matchLabels: { app: helloworld } }
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: helloworld
   template:
-    metadata: { labels: { app: helloworld } }
+    metadata:
+      labels:
+        app: helloworld
     spec:
       containers:
         - name: app
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
-          ports: [ { containerPort: 80 } ]
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: 80

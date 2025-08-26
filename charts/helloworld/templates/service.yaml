@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.service.name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: helloworld
+spec:
+  type: {{ .Values.service.type }}
+  selector:
+    app: helloworld
+  ports:
+    - name: http
+      port: {{ .Values.service.port }}
+      targetPort: 80
+      {{- if and (eq .Values.service.type "NodePort") (.Values.service.nodePort) }}
+      nodePort: {{ .Values.service.nodePort }}
+      {{- end }}
