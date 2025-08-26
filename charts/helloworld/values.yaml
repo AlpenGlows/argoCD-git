@@ -5,12 +5,5 @@ image:
 
 replicaCount: 1
 
-service:
-  name: helloworld-service
-  namespace: cd-sys
-  type: NodePort   # dışarı açmak için
-  port: 80         # container’ın expose ettiği port
-  nodePort: 30081  # dışarıdan erişmek istediğin port (30000–32767 arası olmalı)
-
 
   # boş bırak, Updater digest yazacak
