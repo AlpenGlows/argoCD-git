@@ -37,19 +37,39 @@ pipeline {
 
     stage('Deploy') {
       steps {
-        // Jenkins’te cluster’a erişmek için bir kubeconfig credential eklemiş olman lazım
         withKubeConfig(credentialsId: 'kubeconfig-id') {
           sh """
-            helm upgrade --install helloworld ./charts/helloworld \
-              -n default --create-namespace \
-              --set image.repository=${REGISTRY}/helloworld \
-              --set image.tag=${env.SHORT_SHA}
+            set -e
 
+            # Değerleri hazırla
+            IMG_REPO="${REGISTRY}/helloworld"
+            IMG_TAG="${SHORT_SHA}"
+
+            # Geçici render dosyası
+            RENDERED=/tmp/deploy-rendered.yaml
+
+            # Helm kullanmadan basit bir render (sadece image alanını değiştiriyor)
+            # NOT: Dosyada başka Helm templating alanları varsa bu yöntem yetmeyebilir.
+            cp ./charts/helloworld/templates/deployment.yaml "\$RENDERED"
+            sed -i 's#{{[ ]*\\.Values\\.image\\.repository[ ]*}}#'"$IMG_REPO"'#g' "\$RENDERED"
+            sed -i 's#{{[ ]*\\.Values\\.image\\.tag[ ]*}}#'"$IMG_TAG"'#g' "\$RENDERED"
+
+            echo '>>> Applying rendered deployment manifest'
+            kubectl -n default apply -f "\$RENDERED"
+
+            echo '>>> Waiting rollout'
             kubectl -n default rollout status deploy/helloworld
+
+            # (İsteğe bağlı) Service varsa aynı şekilde uygula
+            if [ -f ./charts/helloworld/templates/deployment.yaml ]; then
+              # service.yaml içinde templating yoksa direkt apply
+              kubectl -n default apply -f ./charts/helloworld/templates/deployment.yaml || true
+            fi
           """
         }
       }
     }
+
   }
 
   post {
