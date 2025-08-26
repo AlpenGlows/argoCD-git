@@ -1,8 +1,11 @@
 image:
   repository: 192.168.64.16:5000/helloworld
-  tag: "e4bcb33"   # Image Updater bunu güncelleyecek
+  tag: ""  # Image Updater bunu güncelleyecek
   pullPolicy: IfNotPresent
 replicaCount: 1
 service:
   type: ClusterIP
   port: 80
+
+
+  # boş bırak, Updater digest yazacak
