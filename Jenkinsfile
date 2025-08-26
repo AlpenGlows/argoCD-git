@@ -36,39 +36,43 @@ pipeline {
     }
 
     stage('Deploy') {
-      steps {
-        withKubeConfig(credentialsId: 'kubeconfig-id') {
-          sh """
-            set -e
+    steps {
+      withCredentials([string(credentialsId: 'kubeconfig-text', variable: 'KUBECONFIG_CONTENT')]) {
+        sh """
+          set -e
 
-            # Değerleri hazırla
-            IMG_REPO="${REGISTRY}/helloworld"
-            IMG_TAG="${SHORT_SHA}"
+          # kubeconfig'i dosyaya yaz
+          KCONF=\$(mktemp)
+          printf "%s" "\$KUBECONFIG_CONTENT" > "\$KCONF"
 
-            # Geçici render dosyası
-            RENDERED=/tmp/deploy-rendered.yaml
+          # Değerleri hazırla
+          IMG_REPO="${REGISTRY}/helloworld"
+          IMG_TAG="${SHORT_SHA}"
 
-            # Helm kullanmadan basit bir render (sadece image alanını değiştiriyor)
-            # NOT: Dosyada başka Helm templating alanları varsa bu yöntem yetmeyebilir.
-            cp ./charts/helloworld/templates/deployment.yaml "\$RENDERED"
-            sed -i 's#{{[ ]*\\.Values\\.image\\.repository[ ]*}}#'"$IMG_REPO"'#g' "\$RENDERED"
-            sed -i 's#{{[ ]*\\.Values\\.image\\.tag[ ]*}}#'"$IMG_TAG"'#g' "\$RENDERED"
+          # Geçici render dosyası
+          RENDERED=\$(mktemp)
 
-            echo '>>> Applying rendered deployment manifest'
-            kubectl -n default apply -f "\$RENDERED"
+          # Helm kullanmadan basit render: sadece image.repository ve image.tag'i değiştiriyoruz
+          cp ./charts/helloworld/templates/deployment.yaml "\$RENDERED"
+          sed -i 's#{{[ ]*\\.Values\\.image\\.repository[ ]*}}#'"$IMG_REPO"'#g' "\$RENDERED"
+          sed -i 's#{{[ ]*\\.Values\\.image\\.tag[ ]*}}#'"$IMG_TAG"'#g' "\$RENDERED"
 
-            echo '>>> Waiting rollout'
-            kubectl -n default rollout status deploy/helloworld
+          echo '>>> Applying rendered deployment manifest'
+          kubectl --kubeconfig="\$KCONF" -n default apply -f "\$RENDERED"
 
-            # (İsteğe bağlı) Service varsa aynı şekilde uygula
-            if [ -f ./charts/helloworld/templates/deployment.yaml ]; then
-              # service.yaml içinde templating yoksa direkt apply
-              kubectl -n default apply -f ./charts/helloworld/templates/deployment.yaml || true
-            fi
-          """
-        }
+          echo '>>> Waiting rollout'
+          kubectl --kubeconfig="\$KCONF" -n default rollout status deploy/helloworld
+
+          # (İsteğe bağlı) Service varsa uygula
+          if [ -f ./charts/helloworld/templates/service.yaml ]; then
+            # service.yaml templating içeriyorsa benzer sed işlemi gerekebilir
+            kubectl --kubeconfig="\$KCONF" -n default apply -f ./charts/helloworld/templates/service.yaml || true
+          fi
+        """
       }
     }
+  }
+
 
   }
 
