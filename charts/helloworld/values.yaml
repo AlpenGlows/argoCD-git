@@ -6,6 +6,7 @@ image:
 replicaCount: 1
 
 service:
+  name: helloworld-service
   namespace: cd-sys
   type: NodePort   # dışarı açmak için
   port: 80         # container’ın expose ettiği port
