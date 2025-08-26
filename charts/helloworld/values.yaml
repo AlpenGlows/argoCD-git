@@ -2,10 +2,13 @@ image:
   repository: 192.168.64.16:5000/helloworld
   tag: ""  # Image Updater bunu güncelleyecek
   pullPolicy: IfNotPresent
+
 replicaCount: 1
+
 service:
-  type: ClusterIP
-  port: 80
+  type: NodePort   # dışarı açmak için
+  port: 80         # container’ın expose ettiği port
+  nodePort: 30080  # dışarıdan erişmek istediğin port (30000–32767 arası olmalı)
 
 
   # boş bırak, Updater digest yazacak
