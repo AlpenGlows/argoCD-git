@@ -10,3 +10,4 @@ service:
   type: NodePort
   port: 80            # containerPort ile aynı olmalı
   nodePort: 30081     # 30000–32767 arası
+  Namespace: argocd
