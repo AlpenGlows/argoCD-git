@@ -1,8 +1,34 @@
-helm:
-  parameters:
-    - name: image.repository
-      value: 192.168.64.16:5000/helloworld
-      forceString: true
-    - name: image.tag
-      value: latest
-      forceString: true
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: helloworld
+  namespace: cd-sys
+  annotations:
+    # Bu uygulamada izlenecek image listesi (takma ad = app)
+    argocd-image-updater.argoproj.io/image-list: app=192.168.64.16:5000/helloworld
+
+    # Güncelleme stratejisi: en yeni tag’i al (istersen semver de kullanabiliriz)
+    argocd-image-updater.argoproj.io/app.update-strategy: latest
+
+    # Git'e yaz (drift olmasın) ve hangi secret'la yazacağını söyle
+    argocd-image-updater.argoproj.io/write-back-method: git:secret=argocd-image-updater-secret
+
+    # Helm chart’ında image alanlarının yolu
+    argocd-image-updater.argoproj.io/app.helm.image-name: image.repository
+    argocd-image-updater.argoproj.io/app.helm.image-tag: image.tag
+spec:
+  project: default
+  source:
+    repoURL: "https://github.com/<kendi-org>/<repo>.git"
+    targetRevision: main
+    path: charts/helloworld
+    helm:
+      valueFiles:
+        - values.yaml
+  destination:
+    server: "https://kubernetes.default.svc"
+    namespace: default
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

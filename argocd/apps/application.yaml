@@ -1,0 +1,25 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: helloworld
+  namespace: cd-sys   # ArgoCD hangi ns’de kuruluysa orası
+spec:
+  project: default
+
+  source:
+    repoURL: 'https://github.com/AlpenGlows/argoCD-git.git'
+    targetRevision: main         # branch adı
+    path: charts/helloworld      # chart’ın yolu
+
+    helm:
+      valueFiles:
+        - values.yaml            # chart içindeki values.yaml
+
+  destination:
+    server: 'https://kubernetes.default.svc'
+    namespace: default           # uygulamanın kurulacağı ns (cd-sys değil!)
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

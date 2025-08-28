@@ -1,16 +1,12 @@
 image:
   repository: 192.168.64.16:5000/helloworld
-  tag: ""  # Image Updater bunu güncelleyecek
+  tag: ""             # Argo CD Image Updater bunu güncelleyecek (örn: latest ya da digest)
   pullPolicy: IfNotPresent
 
 replicaCount: 1
 
 service:
   name: helloworld-service
-  namespace: cd-sys
-  type: NodePort   # dışarı açmak için
-  port: 81         # container’ın expose ettiği port
-  nodePort: 30081  # dışarıdan erişmek istediğin port (30000–32767 arası olmalı)
-
-
-  # boş bırak, Updater digest yazacak
+  type: NodePort
+  port: 80            # containerPort ile aynı olmalı
+  nodePort: 30081     # 30000–32767 arası
